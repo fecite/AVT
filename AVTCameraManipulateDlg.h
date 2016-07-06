@@ -41,4 +41,5 @@ public:
 	VmbUint32_t nCameraCount;
 	VmbCameraInfo_t *pCameras;
 	VmbHandle_t hCamera;
+	afx_msg void OnBnClickedBtnConnectCamera();
 };
