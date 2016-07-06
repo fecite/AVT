@@ -4,6 +4,9 @@
 
 #pragma once
 #include "afxwin.h"
+#include <fstream>
+
+using namespace std;
 
 
 // CAVTCameraManipulateDlg ¶Ô»°¿ò
@@ -35,6 +38,7 @@ public:
 	afx_msg void OnBnClickedBtnSnap();
 	CListBox m_ctlListBox;
 
+
 	CComboBox m_comboCameraList;
 	CString m_strComboCameraList;
 	VmbError_t vmbErr;
@@ -42,4 +46,11 @@ public:
 	VmbCameraInfo_t *pCameras;
 	VmbHandle_t hCamera;
 	afx_msg void OnBnClickedBtnConnectCamera();
+	VmbFeatureInfo_t *pFeatures;
+	VmbInt64_t nWidth;
+	VmbInt64_t nPLS;
 };
+
+void VMB_CALL FrameDoneCallback( const VmbHandle_t hCamera, VmbFrame_t *pFrame );
+
+CONST char *VmbFeatureDataTypeTransfer (int nType);

@@ -73,6 +73,12 @@ BOOL CAVTCameraManipulateApp::InitInstance()
 	// 例如修改为公司或组织名
 	SetRegistryKey(_T("应用程序向导生成的本地应用程序"));
 
+	vmbError = VmbStartup();
+	if (VmbErrorSuccess !=  vmbError)
+	{
+		AfxMessageBox(_T("Vimba Startup Error!"));
+	}
+
 	CAVTCameraManipulateDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
@@ -93,11 +99,6 @@ BOOL CAVTCameraManipulateApp::InitInstance()
 		delete pShellManager;
 	}
 
-	vmbError = VmbStartup();
-	if (VmbErrorSuccess !=  vmbError)
-	{
-		AfxMessageBox(_T("Vimba Startup Error!"));
-	}
 
 	// 由于对话框已关闭，所以将返回 FALSE 以便退出应用程序，
 	//  而不是启动应用程序的消息泵。

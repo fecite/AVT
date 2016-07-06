@@ -1,17 +1,22 @@
-﻿生成启动时间为 2016/7/6 1:25:56。
-     1>项目“D:\12Xpp\AVTCameraManipulate\AVTCameraManipulate\AVTCameraManipulate.vcxproj”在节点 2 上(build 个目标)。
+﻿生成启动时间为 7/6/2016 5:16:15 PM。
+     1>项目“D:\12XPP\VC\AVTCameraManipulate\AVTCameraManipulate\AVTCameraManipulate.vcxproj”在节点 2 上(build 个目标)。
      1>InitializeBuildStatus:
-         正在对“Debug\AVTCameraManipulate.unsuccessfulbuild”执行 Touch 任务。
+         正在创建“Debug\AVTCameraManipulate.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
        ClCompile:
          所有输出均为最新。
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _MBCS /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\AVTCameraManipulate.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt AVTCameraManipulateDlg.cpp
          AVTCameraManipulateDlg.cpp
+     1>d:\12xpp\vc\avtcameramanipulate\avtcameramanipulate\avtcameramanipulatedlg.cpp(264): warning C4244: “参数”: 从“VmbInt64_t”转换到“size_t”，可能丢失数据
+     1>d:\12xpp\vc\avtcameramanipulate\avtcameramanipulate\avtcameramanipulatedlg.cpp(265): warning C4244: “=”: 从“VmbInt64_t”转换到“VmbUint32_t”，可能丢失数据
+     1>d:\12xpp\vc\avtcameramanipulate\avtcameramanipulate\avtcameramanipulatedlg.cpp(275): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(234) : 参见“fopen”的声明
+     1>d:\12xpp\vc\avtcameramanipulate\avtcameramanipulate\avtcameramanipulatedlg.cpp(217): warning C4715: “VmbFeatureDataTypeTransfer”: 不是所有的控件路径都返回值
        ResourceCompile:
          所有输出均为最新。
        ManifestResourceCompile:
          所有输出均为最新。
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\12Xpp\AVTCameraManipulate\Debug\AVTCameraManipulate.exe" /INCREMENTAL /NOLOGO /MANIFEST /ManifestFile:"Debug\AVTCameraManipulate.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\12Xpp\AVTCameraManipulate\Debug\AVTCameraManipulate.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\12Xpp\AVTCameraManipulate\Debug\AVTCameraManipulate.lib" /MACHINE:X86 Debug\AVTCameraManipulate.res
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\12XPP\VC\AVTCameraManipulate\Debug\AVTCameraManipulate.exe" /INCREMENTAL /NOLOGO /MANIFEST /ManifestFile:"Debug\AVTCameraManipulate.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\12XPP\VC\AVTCameraManipulate\Debug\AVTCameraManipulate.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\12XPP\VC\AVTCameraManipulate\Debug\AVTCameraManipulate.lib" /MACHINE:X86 Debug\AVTCameraManipulate.res
          Debug\AVTCameraManipulate.exe.embed.manifest.res
          Debug\AVTCameraManipulate.obj
          Debug\AVTCameraManipulateDlg.obj
@@ -21,12 +26,12 @@
          所有输出均为最新。
        LinkEmbedManifest:
          所有输出均为最新。
-         AVTCameraManipulate.vcxproj -> D:\12Xpp\AVTCameraManipulate\Debug\AVTCameraManipulate.exe
+         AVTCameraManipulate.vcxproj -> D:\12XPP\VC\AVTCameraManipulate\Debug\AVTCameraManipulate.exe
        FinalizeBuildStatus:
          正在删除文件“Debug\AVTCameraManipulate.unsuccessfulbuild”。
          正在对“Debug\AVTCameraManipulate.lastbuildstate”执行 Touch 任务。
-     1>已完成生成项目“D:\12Xpp\AVTCameraManipulate\AVTCameraManipulate\AVTCameraManipulate.vcxproj”(build 个目标)的操作。
+     1>已完成生成项目“D:\12XPP\VC\AVTCameraManipulate\AVTCameraManipulate\AVTCameraManipulate.vcxproj”(build 个目标)的操作。
 
 生成成功。
 
-已用时间 00:00:00.60
+已用时间 00:00:01.30

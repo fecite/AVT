@@ -53,6 +53,7 @@ CAVTCameraManipulateDlg::CAVTCameraManipulateDlg(CWnd* pParent /*=NULL*/)
 	, m_strComboCameraList(_T(""))
 	, nCameraCount(0)
 	, pCameras(NULL)
+	, pFeatures(NULL)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -165,6 +166,56 @@ HCURSOR CAVTCameraManipulateDlg::OnQueryDragIcon()
 }
 
 
+void VMB_CALL FrameDoneCallback( const VmbHandle_t hCamera, VmbFrame_t *pFrame )
+{
+	if ( VmbFrameStatusComplete == pFrame->receiveStatus )
+	{
+		AfxMessageBox("Frame successfully received" );
+	}
+	else
+	{
+		AfxMessageBox("Error receiving frame" );
+	}
+	VmbCaptureFrameQueue( hCamera, pFrame, FrameDoneCallback );
+}
+
+
+CONST char *VmbFeatureDataTypeTransfer (int nType)
+{
+	switch (nType)
+	{
+	case 0:
+		return "Unknow";
+		break;
+	case 1:
+		return "Int";
+		break;
+	case 2:
+		return "Float";
+		break;
+	case 3:
+		return "Enum";
+		break;
+	case 4:
+		return "String";
+		break;
+	case 5:
+		return "Bool";
+		break;
+	case 6:
+		return "Command";
+		break;
+	case 7:
+		return "Raw";
+		break;
+	case 8:
+		return "None";
+		break;
+	default:
+		break;
+	}
+}
+
 
 void CAVTCameraManipulateDlg::OnBnClickedBtnInitCamera()
 {
@@ -175,7 +226,7 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnInitCamera()
 	{
 		if (true == bGige)
 		{
-			vmbErr = VmbFeatureCommandRun(gVimbaHandle, "GevDiscoveryAllOnce");
+			vmbErr = VmbFeatureCommandRun(gVimbaHandle, "GeVDiscoveryAllOnce");
 		}
 	}
 	if (VmbErrorSuccess == vmbErr)
@@ -189,9 +240,14 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnInitCamera()
 			for (VmbUint32_t i=0; i<nCameraCount; ++i)
 			{
 				//printf("%s\n", pCameras[i].cameraName);
+				CString strTmp;
+				strTmp.Format("Found the %dth camera: %s", i+1, pCameras[i].cameraIdString);
 				m_comboCameraList.AddString(pCameras[i].cameraIdString);
+				m_ctlListBox.AddString(strTmp);
 			}
 		}
+		//m_ctlListBox.SetWindowTextA(pCameras[0].cameraIdString);
+		//UpdateData();
 	}
 }
 
@@ -199,7 +255,30 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnInitCamera()
 void CAVTCameraManipulateDlg::OnBnClickedBtnSnap()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	
+#define FRAME_COUNT 3
+	VmbFrame_t frames[FRAME_COUNT];
+
+	vmbErr = VmbFeatureIntGet(hCamera, "PayloadSize", &nPLS);
+	for (int i=0; i<FRAME_COUNT; i++)
+	{
+		frames[i].buffer = malloc(nPLS);
+		frames[i].bufferSize = nPLS;
+		VmbFrameAnnounce(hCamera, &frames[i], sizeof(VmbFrame_t));
+	}
+
+	vmbErr = VmbCaptureStart(hCamera);
+	for (int i=0; i<FRAME_COUNT; i++)
+	{
+		VmbCaptureFrameQueue(hCamera, &frames[i], FrameDoneCallback);
+		if (2 == i)
+		{
+			FILE* pFile = fopen("D:\\pic.raw", "wb");
+			fwrite(frames[i].buffer, frames[i].bufferSize, 1, pFile);
+			fclose(pFile);	
+		}
+	}
+
+	vmbErr = VmbFeatureCommandRun(hCamera, "Software");
 }
 
 
@@ -207,10 +286,48 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnConnectCamera()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	int nSel = m_comboCameraList.GetCurSel();
-	m_comboCameraList.GetLBText(nSel, (LPTSTR)&m_strComboCameraList);
+	m_comboCameraList.GetWindowText(m_strComboCameraList);
 	if (VmbErrorSuccess == VmbCameraOpen(m_strComboCameraList, VmbAccessModeFull, &hCamera))
 	{
 		m_ctlListBox.AddString("Camera opened!");
+	}
+
+	vmbErr = VmbFeaturesList(hCamera, NULL, 0, &nCameraCount, sizeof(*pFeatures));
+
+	ofstream outFile;
+	outFile.open("D:\\DataType.txt", ios::out);
+	if (VmbErrorSuccess == vmbErr && 0 < nCameraCount)
+	{
+		pFeatures = (VmbFeatureInfo_t *)malloc(nCameraCount*sizeof(*pFeatures));
+		vmbErr = VmbFeaturesList(hCamera, pFeatures, nCameraCount, &nCameraCount, sizeof(*pFeatures));
+		for (UINT i=0; i<nCameraCount; i++)
+		{
+			CString strTmp;
+			strTmp.Format("%s:\t\t%s", pFeatures[i].name, VmbFeatureDataTypeTransfer(pFeatures[i].featureDataType));
+			outFile << strTmp << endl;
+			m_ctlListBox.AddString(strTmp);
+		}
+	}
+	outFile.close();
+
+	if (VmbErrorSuccess == VmbFeatureIntGet(hCamera, "PayloadSize", &nWidth))
+	{
+	/*	CString strTmp;
+		strTmp.Format("Width: %d", nWidth);
+		m_ctlListBox.AddString(strTmp);*/
+		//m_ctlListBox.AddString(LPCTSTR(&nWidth));
+	}
+
+	if (VmbErrorSuccess == VmbFeatureEnumSet(hCamera, "TriggerSource", "Software"))
+	{
+		m_ctlListBox.AddString("Software Trigger...");
+	}
+	else
+		m_ctlListBox.AddString("Software Trigger not activated!");
+
+	if (VmbErrorSuccess == VmbFeatureEnumSet(hCamera, "AcquisitionMode", "Continuous"))
+	{
+		if (VmbErrorSuccess == VmbFeatureCommandRun(hCamera, "AcquisitionStart"))
+			m_ctlListBox.AddString("Start Acquistion...");
 	}
 }
