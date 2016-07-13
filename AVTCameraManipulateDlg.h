@@ -49,6 +49,7 @@ public:
 	VmbFeatureInfo_t *pFeatures;
 	VmbInt64_t nWidth;
 	VmbInt64_t nPLS;
+	afx_msg void OnBnClickedBtnDisconnectCamera();
 };
 
 void VMB_CALL FrameDoneCallback( const VmbHandle_t hCamera, VmbFrame_t *pFrame );

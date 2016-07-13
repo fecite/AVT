@@ -73,6 +73,7 @@ BEGIN_MESSAGE_MAP(CAVTCameraManipulateDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_INIT_CAMERA, &CAVTCameraManipulateDlg::OnBnClickedBtnInitCamera)
 	ON_BN_CLICKED(IDC_BTN_SNAP, &CAVTCameraManipulateDlg::OnBnClickedBtnSnap)
 	ON_BN_CLICKED(IDC_BTN_CONNECT_CAMERA, &CAVTCameraManipulateDlg::OnBnClickedBtnConnectCamera)
+	ON_BN_CLICKED(IDC_BTN_DISCONNECT_CAMERA, &CAVTCameraManipulateDlg::OnBnClickedBtnDisconnectCamera)
 END_MESSAGE_MAP()
 
 
@@ -170,7 +171,14 @@ void VMB_CALL FrameDoneCallback( const VmbHandle_t hCamera, VmbFrame_t *pFrame )
 {
 	if ( VmbFrameStatusComplete == pFrame->receiveStatus )
 	{
-		AfxMessageBox("Frame successfully received" );
+		CString strPath;
+		strPath.Format("D:\\Pic.raw");
+		FILE* pFile = fopen(strPath, "wb");
+		fwrite(pFrame->buffer, pFrame->bufferSize, 1, pFile);
+		fclose(pFile);
+		CAVTCameraManipulateDlg *dlg = (CAVTCameraManipulateDlg*)(AfxGetApp()->GetMainWnd());
+		dlg->m_ctlListBox.AddString("Frame successfully received");
+		//AfxMessageBox("Frame successfully received" );
 	}
 	else
 	{
@@ -255,30 +263,11 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnInitCamera()
 void CAVTCameraManipulateDlg::OnBnClickedBtnSnap()
 {
 	// TODO: 在此添加控件通知处理程序代码
-#define FRAME_COUNT 3
-	VmbFrame_t frames[FRAME_COUNT];
 
-	vmbErr = VmbFeatureIntGet(hCamera, "PayloadSize", &nPLS);
-	for (int i=0; i<FRAME_COUNT; i++)
-	{
-		frames[i].buffer = malloc(nPLS);
-		frames[i].bufferSize = nPLS;
-		VmbFrameAnnounce(hCamera, &frames[i], sizeof(VmbFrame_t));
-	}
 
-	vmbErr = VmbCaptureStart(hCamera);
-	for (int i=0; i<FRAME_COUNT; i++)
-	{
-		VmbCaptureFrameQueue(hCamera, &frames[i], FrameDoneCallback);
-		if (2 == i)
-		{
-			FILE* pFile = fopen("D:\\pic.raw", "wb");
-			fwrite(frames[i].buffer, frames[i].bufferSize, 1, pFile);
-			fclose(pFile);	
-		}
-	}
-
-	vmbErr = VmbFeatureCommandRun(hCamera, "Software");
+	vmbErr = VmbFeatureCommandRun(hCamera, "TriggerSoftware");
+	if (VmbErrorSuccess == vmbErr)
+		m_ctlListBox.AddString("Trigger Software is set!");
 }
 
 
@@ -300,6 +289,7 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnConnectCamera()
 	{
 		pFeatures = (VmbFeatureInfo_t *)malloc(nCameraCount*sizeof(*pFeatures));
 		vmbErr = VmbFeaturesList(hCamera, pFeatures, nCameraCount, &nCameraCount, sizeof(*pFeatures));
+		/*
 		for (UINT i=0; i<nCameraCount; i++)
 		{
 			CString strTmp;
@@ -307,6 +297,7 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnConnectCamera()
 			outFile << strTmp << endl;
 			m_ctlListBox.AddString(strTmp);
 		}
+		*/
 	}
 	outFile.close();
 
@@ -325,9 +316,55 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnConnectCamera()
 	else
 		m_ctlListBox.AddString("Software Trigger not activated!");
 
+	/*
+	if (VmbErrorSuccess == VmbFeatureEnumSet(hCamera, "TriggerSource", "Freerun"))
+	{
+		m_ctlListBox.AddString("Freerun Trigger...");
+	}
+	else
+		m_ctlListBox.AddString("Freerun Trigger not activated!");
+	*/
+
 	if (VmbErrorSuccess == VmbFeatureEnumSet(hCamera, "AcquisitionMode", "Continuous"))
 	{
-		if (VmbErrorSuccess == VmbFeatureCommandRun(hCamera, "AcquisitionStart"))
-			m_ctlListBox.AddString("Start Acquistion...");
+		m_ctlListBox.AddString("AcquisitionMode is set as Continuous");	
+	}
+
+	#define FRAME_COUNT 3
+	VmbFrame_t frames[FRAME_COUNT];
+
+	vmbErr = VmbFeatureIntGet(hCamera, "PayloadSize", &nPLS);
+	for (int i=0; i<FRAME_COUNT; i++)
+	{
+		frames[i].buffer = malloc(nPLS);
+		frames[i].bufferSize = nPLS;
+		VmbFrameAnnounce(hCamera, &frames[i], sizeof(VmbFrame_t));
+	}
+
+	vmbErr = VmbCaptureStart(hCamera);
+	for (int i=0; i<FRAME_COUNT; i++)
+	{
+		VmbCaptureFrameQueue(hCamera, &frames[i], FrameDoneCallback);
+ 	}
+
+	if (VmbErrorSuccess == VmbFeatureCommandRun(hCamera, "AcquisitionStart"))
+		m_ctlListBox.AddString("Start Acquistion...");
+}
+
+
+void CAVTCameraManipulateDlg::OnBnClickedBtnDisconnectCamera()
+{
+	// TODO: ÔÚ´ËÌí¼Ó¿Ø¼þÍ¨Öª´¦Àí³ÌÐò´úÂë
+	if (VmbErrorSuccess == VmbFeatureCommandRun(hCamera, "AcquisitionStop"))
+		m_ctlListBox.AddString("Stop Acquisition...");
+	if (VmbErrorSuccess == VmbCaptureQueueFlush(hCamera))
+		m_ctlListBox.AddString("Capture Queue Flush Done!");
+	if (VmbErrorSuccess == VmbCaptureEnd(hCamera))
+	{
+		m_ctlListBox.AddString("Capture End");
+	}
+	if (VmbErrorSuccess == VmbFrameRevokeAll(hCamera))
+	{
+		m_ctlListBox.AddString("Frame Revoke All");
 	}
 }
