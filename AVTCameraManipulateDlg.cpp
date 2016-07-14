@@ -54,6 +54,8 @@ CAVTCameraManipulateDlg::CAVTCameraManipulateDlg(CWnd* pParent /*=NULL*/)
 	, nCameraCount(0)
 	, pCameras(NULL)
 	, pFeatures(NULL)
+	, strRawPath(_T(""))
+	, strJpgPath(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -112,7 +114,9 @@ BOOL CAVTCameraManipulateDlg::OnInitDialog()
 	ShowWindow(SW_NORMAL);
 
 	// TODO: 在此添加额外的初始化代码
-
+	vmbBool = false;
+	strRawPath.Format("D:\\AVT_Raw.raw");
+	strJpgPath.Format("D:\\AVT_Pic.jpg");
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -169,20 +173,23 @@ HCURSOR CAVTCameraManipulateDlg::OnQueryDragIcon()
 
 void VMB_CALL FrameDoneCallback( const VmbHandle_t hCamera, VmbFrame_t *pFrame )
 {
+	CAVTCameraManipulateDlg *dlg = (CAVTCameraManipulateDlg*)(AfxGetApp()->GetMainWnd());
 	if ( VmbFrameStatusComplete == pFrame->receiveStatus )
 	{
 		CString strPath;
 		strPath.Format("D:\\Pic.raw");
-		FILE* pFile = fopen(strPath, "wb");
-		fwrite(pFrame->buffer, pFrame->bufferSize, 1, pFile);
-		fclose(pFile);
-		CAVTCameraManipulateDlg *dlg = (CAVTCameraManipulateDlg*)(AfxGetApp()->GetMainWnd());
-		dlg->m_ctlListBox.AddString("Frame successfully received");
+		if (NULL != pFrame->buffer)
+		{
+			FILE* pFile = fopen(strPath, "wb");
+			fwrite(pFrame->buffer, pFrame->bufferSize, 1, pFile);
+			fclose(pFile);
+			dlg->m_ctlListBox.AddString("Frame successfully received");
+		}
+		else
+		{
+			dlg->m_ctlListBox.AddString("Frame Receiving Failure!");
+		}
 		//AfxMessageBox("Frame successfully received" );
-	}
-	else
-	{
-		AfxMessageBox("Error receiving frame" );
 	}
 	VmbCaptureFrameQueue( hCamera, pFrame, FrameDoneCallback );
 }
@@ -228,11 +235,10 @@ CONST char *VmbFeatureDataTypeTransfer (int nType)
 void CAVTCameraManipulateDlg::OnBnClickedBtnInitCamera()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	bool bGige;
-	vmbErr = VmbFeatureBoolGet(gVimbaHandle, "GeVTLIsPresent", &bGige);
+	vmbErr = VmbFeatureBoolGet(gVimbaHandle, "GeVTLIsPresent", &vmbBool);
 	if (VmbErrorSuccess == vmbErr)
 	{
-		if (true == bGige)
+		if (true == vmbBool)
 		{
 			vmbErr = VmbFeatureCommandRun(gVimbaHandle, "GeVDiscoveryAllOnce");
 		}
@@ -259,16 +265,6 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnInitCamera()
 	}
 }
 
-
-void CAVTCameraManipulateDlg::OnBnClickedBtnSnap()
-{
-	// TODO: 在此添加控件通知处理程序代码
-
-
-	vmbErr = VmbFeatureCommandRun(hCamera, "TriggerSoftware");
-	if (VmbErrorSuccess == vmbErr)
-		m_ctlListBox.AddString("Trigger Software is set!");
-}
 
 
 void CAVTCameraManipulateDlg::OnBnClickedBtnConnectCamera()
@@ -345,20 +341,51 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnConnectCamera()
 	for (int i=0; i<FRAME_COUNT; i++)
 	{
 		VmbCaptureFrameQueue(hCamera, &frames[i], FrameDoneCallback);
+
+		if (2==i)
+		{
+			FILE* pFile = fopen(strRawPath, "wb");
+			fwrite(frames[i].buffer, frames[i].bufferSize, 1, pFile);
+			fclose(pFile);
+
+			vmbErr = VmbFeatureCommandRun(hCamera, "TriggerSoftware");
+			if (VmbErrorSuccess == vmbErr)
+				m_ctlListBox.AddString("Trigger Software is set!");
+		}
  	}
 
 	if (VmbErrorSuccess == VmbFeatureCommandRun(hCamera, "AcquisitionStart"))
-		m_ctlListBox.AddString("Start Acquistion...");
+		m_ctlListBox.AddString("Start Acquisition...");
+
+	if (VmbErrorSuccess == VmbFeatureCommandIsDone(hCamera, "AcquisitionStart", &vmbBool))
+	{
+		if (true == vmbBool)
+		{
+			m_ctlListBox.AddString("Acquisition Start Is Done!");
+		}
+	}
+}
+
+
+void CAVTCameraManipulateDlg::OnBnClickedBtnSnap()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	vmbErr = VmbFeatureCommandRun(hCamera, "TriggerSoftware");
+	if (VmbErrorSuccess == vmbErr)
+		m_ctlListBox.AddString("Trigger Software is set!");
 }
 
 
 void CAVTCameraManipulateDlg::OnBnClickedBtnDisconnectCamera()
 {
-	// TODO: ÔÚ´ËÌí¼Ó¿Ø¼þÍ¨Öª´¦Àí³ÌÐò´úÂë
 	if (VmbErrorSuccess == VmbFeatureCommandRun(hCamera, "AcquisitionStop"))
+	{
 		m_ctlListBox.AddString("Stop Acquisition...");
+	}
 	if (VmbErrorSuccess == VmbCaptureQueueFlush(hCamera))
+	{
 		m_ctlListBox.AddString("Capture Queue Flush Done!");
+	}
 	if (VmbErrorSuccess == VmbCaptureEnd(hCamera))
 	{
 		m_ctlListBox.AddString("Capture End");
@@ -366,5 +393,9 @@ void CAVTCameraManipulateDlg::OnBnClickedBtnDisconnectCamera()
 	if (VmbErrorSuccess == VmbFrameRevokeAll(hCamera))
 	{
 		m_ctlListBox.AddString("Frame Revoke All");
+	}
+	if (VmbErrorSuccess == VmbCameraClose(hCamera))
+	{
+		m_ctlListBox.AddString("Camera Closed!");
 	}
 }

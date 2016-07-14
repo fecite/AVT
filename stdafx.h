@@ -41,9 +41,11 @@
 #include <afxsock.h>            // MFC Ì×½Ó×ÖÀ©Õ¹
 #include "VimbaC.h"
 #include "VmbCommonTypes.h"
+#include "jpeglib.h"
 
 
 #pragma comment(lib, "VimbaC.lib")
+#pragma comment(lib, "jpeg.lib")
 
 
 

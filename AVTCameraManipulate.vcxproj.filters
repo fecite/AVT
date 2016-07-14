@@ -45,6 +45,18 @@
     <ClInclude Include="VmbCommonTypes.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="jconfig.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="jerror.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="jmorecfg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeglib.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AVTCameraManipulate.cpp">

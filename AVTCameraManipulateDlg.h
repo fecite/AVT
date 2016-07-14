@@ -50,6 +50,9 @@ public:
 	VmbInt64_t nWidth;
 	VmbInt64_t nPLS;
 	afx_msg void OnBnClickedBtnDisconnectCamera();
+	VmbBool_t vmbBool;
+	CString strRawPath;
+	CString strJpgPath;
 };
 
 void VMB_CALL FrameDoneCallback( const VmbHandle_t hCamera, VmbFrame_t *pFrame );
